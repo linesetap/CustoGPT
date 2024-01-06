@@ -1,5 +1,3 @@
-from website import *
-website()
 import os
 import aiohttp
 import re

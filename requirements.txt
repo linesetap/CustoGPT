@@ -1,2 +1,5 @@
+aiohttp
+mistune
+requests
 python-telegram-bot
 openai

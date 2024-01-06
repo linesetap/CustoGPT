@@ -1,3 +1,5 @@
+from website import website 
+website()
 import os
 import aiohttp
 import re
@@ -40,10 +42,7 @@ from telegram.ext import (
 import html
 from uuid import *
 import datetime
-from PIL import Image, ImageDraw, ImageFont
-import arabic_reshaper
 from openai import *
-import textwrap
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -100,7 +99,6 @@ async def message_handler(update, context):
 
         # تحديث رصيد المستخدم بخصم قيمة الطلب
         balance = context.user_data.setdefault("balance", 5)
-
         deduction_amount = 0.005
 
         if balance < deduction_amount:
@@ -121,7 +119,8 @@ async def message_handler(update, context):
             return
 
         client = OpenAI(api_key=key)
-        response_moderation = client.moderations.create(model="text-moderation-latest", input=update.message.text)
+        response_moderation = client.moderations.create(
+            model="text-moderation-latest", input=update.message.text)
         output_moderation = response_moderation.results[0]
         if output_moderation.flagged:
             await update.message.reply_text(
@@ -136,22 +135,27 @@ async def message_handler(update, context):
 
         if not conversation:
             if instructions:
-                conversation = [{"role": "system", "content": f"{instructions}"}]
+                conversation = [
+                    {"role": "system", "content": f"{instructions}"}]
             else:
                 conversation = []
 
         conversation.append({"role": "user", "content": text})
-      # إرسال رسالة "يتم الآن العمل على الإجابة على رسالتك..." للمستخدم
+        
+        # إرسال رسالة "يتم الآن العمل على الإجابة على رسالتك..." للمستخدم
         message = await update.message.reply_text(
             "يتم الآن العمل على الإجابة على رسالتك...", parse_mode="MARKDOWN",
             reply_to_message_id=update.message.message_id)
 
         # إنشاء مولد للحصول على الردود من openai
-      #gpt-3.5-turbo or gpt-3.5-turbo-16k-0613
-        generator = client.chat.completions.create(model="gpt-3.5-turbo", messages=conversation, temperature=0.5, stop=None, stream=True)
+        generator = client.chat.completions.create(
+            model="gpt-3.5-turbo", messages=conversation, temperature=0.5, stop=None, stream=True)
 
         # إنشاء متغير لتخزين الرسائل
         messages = []
+
+        # تعريف متغير زمني لتتبع آخر تحديث للرسالة
+        last_update = time.time()
 
         # إرسال الردود تدريجياً للمستخدم باستخدام خاصية stream
         for response in generator:
@@ -159,16 +163,25 @@ async def message_handler(update, context):
                 # إضافة محتوى الرد إلى قائمة الرسائل
                 messages.append(response.choices[0].delta.content)
                 messages_str = "".join(messages)
-                await asyncio.sleep(0.40)
-                await message.edit_text(f"✏️ [{random.randint(100000, 999000)}] | {messages_str}")
+                # الحصول على الوقت الحالي
+                current_time = time.time()
+                # مقارنة الوقت الحالي مع آخر تحديث
+                if current_time - last_update >= 1:
+                    # تحديث الرسالة بالرسائل الجديدة
+                    await message.edit_text(f"✏️ [{random.randint(100000, 999000)}] | {messages_str}")
+                    # تحديث متغير الزمن
+                    last_update = current_time
             else:
-              await message.edit_text(f"{messages_str}", parse_mode="MARKDOWN")
-              conversation.append({"role": "assistant", "content": messages_str})
-              context.user_data["conversation"] = conversation
+                # إرسال الرسالة النهائية
+                await message.edit_text(f"{messages_str}")
+                conversation.append(
+                    {"role": "assistant", "content": messages_str})
+                context.user_data["conversation"] = conversation
 
     except Exception as e:
-      await message.edit_text(f"❌️ | `{e}`", parse_mode="MARKDOWN")
-      del context.user_data["conversation"][-1]
+        print(f"❌️ | `{e}`")
+        await message.edit_text(f"❌️ | `{e}`", parse_mode="MARKDOWN")
+        del context.user_data["conversation"][-1]
 
 
 

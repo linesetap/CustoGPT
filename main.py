@@ -1,31 +1,7 @@
-from website import website 
-website()
-import os
-import aiohttp
-import re
-import time
-import asyncio
-import logging
-from bs4 import BeautifulSoup
-import traceback
-import tempfile
-import mistune
-import json
-import random
-import requests
-import time
-import sys
-import asyncio
-from telegram import (
-    BotCommand,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Update,
-    InlineQueryResultArticle,
-    InputTextMessageContent,
-    PhotoSize,
-)
-from telegram.constants import ParseMode
+from openai import *
+import datetime
+from uuid import *
+import html
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -39,32 +15,52 @@ from telegram.ext import (
     ContextTypes,
     InlineQueryHandler,
 )
-import html
-from uuid import *
-import datetime
-from openai import *
+from telegram.constants import ParseMode
+from telegram import (
+    BotCommand,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    PhotoSize,
+)
+import sys
+import requests
+import random
+import json
+import mistune
+import tempfile
+import traceback
+import logging
+import asyncio
+import time
+import re
+import aiohttp
+import os
+from website import website
+website()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-DEVELOPER_CHAT_ID = 6262702086  #Input: int, value: Telegram channel/user.
-administrators = os.environ["administrators"]
+DEVELOPER_CHAT_ID = 6262702086  # Input: int, value: Telegram channel/user.
 URL_DOCS = "https://telegra.ph/Custo-12-21"
 
 markup = InlineKeyboardMarkup([[
     InlineKeyboardButton(text="📚", url="https://t.me/custogpt/"),
-  InlineKeyboardButton(text="ℹ️", url=URL_DOCS),
+    InlineKeyboardButton(text="ℹ️", url=URL_DOCS),
     InlineKeyboardButton(text="💵", url="https://paypal.com/paypalme/lineset"),
-  InlineKeyboardButton(text="✉️", url="https://t.me/jiv9e"),
+    InlineKeyboardButton(text="✉️", url="https://t.me/jiv9e"),
 ]])
 
 
 async def start_command(update, context):
-  user_id = update.message.from_user.id
-  await update.message.reply_text(
-      f"""<b>البوت العربي الأول في تخصيص GPT على تيليجرام!!</b>
+    user_id = update.message.from_user.id
+    await update.message.reply_text(
+        f"""<b>البوت العربي الأول في تخصيص GPT على تيليجرام!!</b>
 
 تخصيص GPT (CustoGPT) هو البوت العربي الأول في مجال الذكاء الاصطناعي الذي يوفر لك جميع ميزات OpenAI APIs بشكل مجاني.
 
@@ -72,14 +68,9 @@ async def start_command(update, context):
 {URL_DOCS}
 
 لمزيد من المعلومات حول البوت، انقر على 📚. ولمزيد من المعلومات حول الرصيد، انقر على ℹ️. ولدعم البوت عبر PayPal، انقر على 💵. وللتواصل مع الدعم الفني انقر على ✉️.""",
-      reply_to_message_id=update.message.message_id,
-      parse_mode=ParseMode.HTML,
-      reply_markup=markup)
-
-
-
-
-
+        reply_to_message_id=update.message.message_id,
+        parse_mode=ParseMode.HTML,
+        reply_markup=markup)
 
 
 # تعريف دالة للتعامل مع الرسائل الواردة
@@ -141,7 +132,7 @@ async def message_handler(update, context):
                 conversation = []
 
         conversation.append({"role": "user", "content": text})
-        
+
         # إرسال رسالة "يتم الآن العمل على الإجابة على رسالتك..." للمستخدم
         message = await update.message.reply_text(
             "يتم الآن العمل على الإجابة على رسالتك...", parse_mode="MARKDOWN",
@@ -149,7 +140,7 @@ async def message_handler(update, context):
 
         # إنشاء مولد للحصول على الردود من openai
         generator = client.chat.completions.create(
-            model="gpt-3.5-turbo", messages=conversation, temperature=0.5, stop=None, stream=True)
+            model="gpt-3.5-turbo-1106", messages=conversation, temperature=0.5, stop=None, stream=True)
 
         # إنشاء متغير لتخزين الرسائل
         messages = []
@@ -173,7 +164,7 @@ async def message_handler(update, context):
                     last_update = current_time
             else:
                 # إرسال الرسالة النهائية
-                await message.edit_text(f"{messages_str}")
+                await message.edit_text(f"{messages_str}", parse_mode="MARKDOWN")
                 conversation.append(
                     {"role": "assistant", "content": messages_str})
                 context.user_data["conversation"] = conversation
@@ -182,14 +173,6 @@ async def message_handler(update, context):
         print(f"❌️ | `{e}`")
         await message.edit_text(f"❌️ | `{e}`", parse_mode="MARKDOWN")
         del context.user_data["conversation"][-1]
-
-
-
-
-
-
-
-
 
 
 # تعريف دالة لمعالجة أمر /authorize
@@ -202,14 +185,14 @@ async def authorize_command(update: Update, context):
 
             try:
                 # تخزين أو تحديث قيمة authorize في context.user_data
-                    context.user_data["authorize"] = value
-                    context.user_data["instructions"] = None
-                    context.user_data["conversation"] = None
-                    # إرسال رسالة تأكيد بشكل غير متزامن
-                    await update.message.reply_text(
-                        f"✅ | تم تخزين مفتاح التفويض بنجاح.",
-                        parse_mode=ParseMode.MARKDOWN,
-                        reply_to_message_id=update.message.message_id)
+                context.user_data["authorize"] = value
+                context.user_data["instructions"] = None
+                context.user_data["conversation"] = None
+                # إرسال رسالة تأكيد بشكل غير متزامن
+                await update.message.reply_text(
+                    f"✅ | تم تخزين مفتاح التفويض بنجاح.",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_to_message_id=update.message.message_id)
             except Exception as e:
                 # إرسال رسالة خطأ بشكل غير متزامن في حالة فشل التحقق من المفتاح
                 await update.message.reply_text(
@@ -228,9 +211,6 @@ async def authorize_command(update: Update, context):
             f"❌️ | `{e}`",
             parse_mode=ParseMode.MARKDOWN,
             reply_to_message_id=update.message.message_id)
-
-
-
 
 
 # تعريف دالة لمعالجة أمر /customize
@@ -259,7 +239,8 @@ async def customize_command(update: Update, context):
                 # قبل ذلك، قم بفحص النص باستخدام خدمة الفحص التلقائي Moderation API
                 key = context.user_data["authorize"]
                 client = OpenAI(api_key=key)
-                response_moderation = client.moderations.create(model="text-moderation-latest",input=value)
+                response_moderation = client.moderations.create(
+                    model="text-moderation-latest", input=value)
                 output_moderation = response_moderation.results[0]
 
                 # التحقق إذا كان هناك مخاطر في النص
@@ -302,28 +283,6 @@ async def customize_command(update: Update, context):
             parse_mode=ParseMode.MARKDOWN,
             reply_to_message_id=update.message.message_id)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 async def tts_command(update: Update, context: CallbackContext):
     try:
@@ -375,7 +334,8 @@ async def tts_command(update: Update, context: CallbackContext):
         text = " ".join(context.args)
 
         client = OpenAI(api_key=key)
-        response_moderation = client.moderations.create(model="text-moderation-latest", input=text)
+        response_moderation = client.moderations.create(
+            model="text-moderation-latest", input=text)
         output_moderation = response_moderation.results[0]
         if output_moderation.flagged:
             await update.message.reply_text(
@@ -386,7 +346,8 @@ async def tts_command(update: Update, context: CallbackContext):
             return
 
         # التحقق من رصيد المستخدم قبل توليد النص
-        balance = context.user_data.get("balance", 5)  # Assuming initial balance is 5
+        # Assuming initial balance is 5
+        balance = context.user_data.get("balance", 5)
 
         # حساب تكلفة النص بناءً على سعر الكلمة
         cost_per_word = 0.0005
@@ -429,120 +390,98 @@ async def tts_command(update: Update, context: CallbackContext):
             reply_to_message_id=update.message.message_id)
 
 
+async def image_command(update: Update, context: CallbackContext):
+    try:
+        key = context.user_data.get("authorize")
+        if not key:
+            await update.message.reply_text(
+                "🔑 | تحتاج إلى تنشيط مفتاح API لاستخدام هذا الأمر.",
+                reply_to_message_id=update.message.message_id)
+            return
 
+        if update.message.text == "/image":
+            current_model = context.user_data.get("model_image", "2")
+            await update.message.reply_text(
+                f"ℹ️ | يتم استخدام نموذج DALL·E-{current_model} كنموذج تلقائي لصنع الصور. يمكنك الاطلاع على التسعير الخاص بهذا النموذج من هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
+                parse_mode=ParseMode.HTML)
+            return
 
+        prompt = " ".join(context.args) if context.args else None
 
+        match = re.fullmatch(r'^<([^>]*)>$', prompt)
+        if match:
+            model_value = match.group(1).strip()
 
+            if not model_value.isdigit() or int(model_value) <= 0:
+                await update.message.reply_text(
+                    "❌ | التنسيق غير صالح. الرجاء استخدام عدد صحيح موجب كإصدار نموذجي مثل <2> أو <3>.",
+                    reply_to_message_id=update.message.message_id)
+                return
 
+            context.user_data["model_image"] = model_value
+            await update.message.reply_text(
+                f"✅️ | تم ضبط النموذج التلقائي على DALL·E-{model_value}. يمكنك التحقق من أسعار هذا النموذج هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
+                reply_to_message_id=update.message.message_id,
+                parse_mode=ParseMode.HTML)
+            return
 
+        # Check if user has enough balance
+        cost_per_image_dalle_2 = 0.018
+        cost_per_image_dalle_3 = 0.040
 
+        cost = 0.0
 
+        current_model = context.user_data.get("model_image", "2")
 
-async def image_command(update:Update, context:CallbackContext):
-  try:
-      key = context.user_data.get("authorize")
-      if not key:
-          await update.message.reply_text(
-              "🔑 | تحتاج إلى تنشيط مفتاح API لاستخدام هذا الأمر.",
-              reply_to_message_id=update.message.message_id)
-          return
+        if current_model == "2":
+            cost = cost_per_image_dalle_2
+        elif current_model == "3":
+            cost = cost_per_image_dalle_3
 
-      if update.message.text == "/image":
-          current_model = context.user_data.get("model_image", "2")
-          await update.message.reply_text(
-              f"ℹ️ | يتم استخدام نموذج DALL·E-{current_model} كنموذج تلقائي لصنع الصور. يمكنك الاطلاع على التسعير الخاص بهذا النموذج من هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
-              parse_mode=ParseMode.HTML)
-          return
+        # Check the user's balance
+        # Assuming initial balance is 5
+        balance = context.user_data.get("balance", 5)
+        if balance < cost:
+            await update.message.reply_text(
+                "❌️ | رصيدك غير كافي لهذه العملية.",
+                reply_to_message_id=update.message.message_id)
+            return
 
-      prompt = " ".join(context.args) if context.args else None
+        # Deduct the cost from the user's balance
+        context.user_data["balance"] = max(0, balance - cost)
 
-      match = re.fullmatch(r'^<([^>]*)>$', prompt)
-      if match:
-          model_value = match.group(1).strip()
+        client = OpenAI(api_key=key)
 
-          if not model_value.isdigit() or int(model_value) <= 0:
-              await update.message.reply_text(
-                  "❌ | التنسيق غير صالح. الرجاء استخدام عدد صحيح موجب كإصدار نموذجي مثل <2> أو <3>.",
-                  reply_to_message_id=update.message.message_id)
-              return
+        # Use client.images.generate to create an image from the prompt
+        response = client.images.generate(
+            model=f"dall-e-{current_model}",
+            prompt=prompt,
+            size="1024x1024",
+            n=1,
+        )
 
-          context.user_data["model_image"] = model_value
-          await update.message.reply_text(
-              f"✅️ | تم ضبط النموذج التلقائي على DALL·E-{model_value}. يمكنك التحقق من أسعار هذا النموذج هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
-              reply_to_message_id=update.message.message_id,
-              parse_mode=ParseMode.HTML)
-          return
+        image_url = response.data[0].url
 
-      # Check if user has enough balance
-      cost_per_image_dalle_2 = 0.018
-      cost_per_image_dalle_3 = 0.040
+        async with aiohttp.ClientSession() as session, session.get(
+                image_url) as response:
+            image_content = await response.content.read()
 
-      cost = 0.0
+        image_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        image_file.write(image_content)
 
-      current_model = context.user_data.get("model_image", "2")
+        # Send the image as a photo
+        await update.message.reply_photo(
+            photo=open(image_file.name, "rb"),
+            caption=f"<b>🖼 | مصنوع بواسطة DALL·E-{current_model}</b>",
+            reply_to_message_id=update.message.message_id,
+            parse_mode=ParseMode.HTML)
 
-      if current_model == "2":
-          cost = cost_per_image_dalle_2
-      elif current_model == "3":
-          cost = cost_per_image_dalle_3
+        image_file.close()
 
-      # Check the user's balance
-      balance = context.user_data.get("balance", 5)  # Assuming initial balance is 5
-      if balance < cost:
-          await update.message.reply_text(
-              "❌️ | رصيدك غير كافي لهذه العملية.",
-              reply_to_message_id=update.message.message_id)
-          return
-
-      # Deduct the cost from the user's balance
-      context.user_data["balance"] = max(0, balance - cost)
-
-      client = OpenAI(api_key=key)
-
-      # Use client.images.generate to create an image from the prompt
-      response = client.images.generate(
-          model=f"dall-e-{current_model}",
-          prompt=prompt,
-          size="1024x1024",
-          n=1,
-      )
-
-      image_url = response.data[0].url
-
-      async with aiohttp.ClientSession() as session, session.get(
-              image_url) as response:
-          image_content = await response.content.read()
-
-      image_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-      image_file.write(image_content)
-
-      # Send the image as a photo
-      await update.message.reply_photo(
-          photo=open(image_file.name, "rb"),
-          caption=f"<b>🖼 | مصنوع بواسطة DALL·E-{current_model}</b>",
-          reply_to_message_id=update.message.message_id,
-          parse_mode=ParseMode.HTML)
-
-      image_file.close()
-
-  except Exception as e:
-    await update.message.reply_text(
-      f"❌️ | `{e}`",
-      reply_to_message_id=update.message.message_id, parse_mode=ParseMode.MARKDOWN)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌️ | `{e}`",
+            reply_to_message_id=update.message.message_id, parse_mode=ParseMode.MARKDOWN)
 
 
 async def audio_to_text_handler(update: Update, context: CallbackContext):
@@ -613,11 +552,11 @@ async def audio_to_text_handler(update: Update, context: CallbackContext):
         context.user_data["balance"] = max(0, balance - cost)
 
         await update.message.reply_text(text,
-            reply_to_message_id=update.message.message_id,
-            parse_mode=ParseMode.HTML)
+                                        reply_to_message_id=update.message.message_id,
+                                        parse_mode=ParseMode.HTML)
 
     except Exception as e:
-      await update.message.reply_text(
+        await update.message.reply_text(
             f"❌️ | `{e}`",
             parse_mode=ParseMode.MARKDOWN,
             reply_to_message_id=update.message.message_id)
@@ -626,58 +565,6 @@ async def audio_to_text_handler(update: Update, context: CallbackContext):
         # Delete the temporary file from the system
         if os.path.exists(media_file_name):
             os.remove(media_file_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
 
 
 async def share_command(update, context):
@@ -703,7 +590,8 @@ async def share_command(update, context):
         js_content = js_file.read()
 
     # Create a temporary HTML file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as f:  # استخدم NamedTemporaryFile بدلاً من TemporaryFile
+    # استخدم NamedTemporaryFile بدلاً من TemporaryFile
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as f:
         html_file_path = f.name  # احتفظ بمسار الملف HTML
 
         # Write the HTML document to the file
@@ -732,22 +620,20 @@ async def share_command(update, context):
             content = mistune.markdown(content)
 
             if role == "user":
-                f.write(f"<div class='message user'><div class='content' dir='auto'>{content}</div></div>\n".encode("utf-8"))
+                f.write(
+                    f"<div class='message user'><div class='content' dir='auto'>{content}</div></div>\n".encode("utf-8"))
             elif role == "assistant":
-                f.write(f"<div class='message assistant'><div class='content' dir='auto'>{content}</div></div>\n".encode("utf-8"))
+                f.write(
+                    f"<div class='message assistant'><div class='content' dir='auto'>{content}</div></div>\n".encode("utf-8"))
 
         # Write the watermark to the file
-        f.write(f"<div class='watermark'><a href='https://t.me/{update.message.from_user.username}'>@{update.message.from_user.username}</a></div>".encode("utf-8"))
+        f.write(
+            f"<div class='watermark'><a href='https://t.me/{update.message.from_user.username}'>@{update.message.from_user.username}</a></div>".encode("utf-8"))
         f.write(b"</body></html>")
 
     # Send the file as a document in Telegram
     with open(html_file_path, "rb") as html_file:
         await update.message.reply_document(document=html_file, reply_to_message_id=update.message.message_id)
-
-
-
-
-
 
 
 # تعريف دالة لمعالجة أمر /clear
@@ -757,7 +643,7 @@ async def balance_command(update: Update, context: CallbackContext):
     context.user_data["conversation"] = None
 
     # إذا لم يكن مفتاح "balance" موجودًا في بيانات المستخدم، فقم بإنشائه واضبط قيمته على 5
-    #context.user_data["balance"] = 5
+    # context.user_data["balance"] = 5
 
     # أرسل رسالة إلى المستخدم تؤكد أن المحادثة قد تم حذفها
     await update.message.reply_text(f"""رصيدك الحالي:
@@ -767,9 +653,8 @@ async def balance_command(update: Update, context: CallbackContext):
 
 
 للحصول على معلومات إضافية حول Custo+، [انقر هنا](https://telegra.ph/Custo-12-21).""",
-        parse_mode=ParseMode.MARKDOWN,
-        reply_to_message_id=update.message.message_id)
-  
+                                    parse_mode=ParseMode.MARKDOWN,
+                                    reply_to_message_id=update.message.message_id)
 
 
 # تعريف دالة لمعالجة أمر /clear
@@ -779,25 +664,13 @@ async def clear_command(update: Update, context: CallbackContext):
     context.user_data["conversation"] = None
 
     # إذا لم يكن مفتاح "balance" موجودًا في بيانات المستخدم، فقم بإنشائه واضبط قيمته على 5
-    #context.user_data["balance"] = 5
+    # context.user_data["balance"] = 5
 
     # أرسل رسالة إلى المستخدم تؤكد أن المحادثة قد تم حذفها
     await update.message.reply_text(
         "ℹ️ | تم حذف محتوى المحادثة وبدء محادثة جديدة.",
         parse_mode=ParseMode.MARKDOWN,
         reply_to_message_id=update.message.message_id)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # تعريف دالة settings_commands
@@ -812,8 +685,8 @@ async def settings_commands(update: Update, context):
 
         chat_section = (
             f"<b>💬 | قسم الدردشة</b>\n"
-          f"1. شخصية البوت:"
-f"<pre>{context.user_data.get('instructions', None)}</pre>"
+            f"1. شخصية البوت:"
+            f"<pre>{context.user_data.get('instructions', None)}</pre>"
         )
 
         tts_settings = (
@@ -872,78 +745,76 @@ f"<pre>{context.user_data.get('instructions', None)}</pre>"
         )
 
 
-
-
 async def json_command(update: Update, context: CallbackContext):
-  message = (
-      f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-      f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-      f"<pre>context.bot_data = {html.escape(str(context.bot_data))}</pre>\n\n"
-  )
+    message = (
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>context.bot_data = {html.escape(str(context.bot_data))}</pre>\n\n"
+    )
 
-  await update.message.reply_text(message, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
 
 async def post_init(application: Application):
-  await application.bot.set_my_commands([
-      BotCommand("/start", "ℹ️ رسالة البدء"),
-      BotCommand("/tts", "🎧 تحويل النص الى كلام"),
-      BotCommand("/image", "🖼 توليد صور"),
+    await application.bot.set_my_commands([
+        BotCommand("/start", "ℹ️ رسالة البدء"),
+        BotCommand("/tts", "🎧 تحويل النص الى كلام"),
+        BotCommand("/image", "🖼 توليد صور"),
 
-  BotCommand("/share", "💾 تصدير المحادثة"),
-  BotCommand("/balance", "💵 عرض الرصيد"),
-      BotCommand("/authorize", "🔑 تعيين مفتاح تفويض"),
-      BotCommand("/customize", "👤 تعيين الشخصية"),
-  BotCommand("/clear", "🔄 تجديد الدردشة"),
-    BotCommand("/settings", "⚙️ إعدادات البوت")
-  ])
+        BotCommand("/share", "💾 تصدير المحادثة"),
+        BotCommand("/balance", "💵 عرض الرصيد"),
+        BotCommand("/authorize", "🔑 تعيين مفتاح تفويض"),
+        BotCommand("/customize", "👤 تعيين الشخصية"),
+        BotCommand("/clear", "🔄 تجديد الدردشة"),
+        BotCommand("/settings", "⚙️ إعدادات البوت")
+    ])
 
 
 async def error_handler(update: object,
                         context: ContextTypes.DEFAULT_TYPE) -> None:
-  tb_list = traceback.format_exception(None, context.error,
-                                       context.error.__traceback__)
-  tb_string = "".join(tb_list)
+    tb_list = traceback.format_exception(None, context.error,
+                                         context.error.__traceback__)
+    tb_string = "".join(tb_list)
 
-  update_str = update.to_dict() if isinstance(update, Update) else str(update)
-  message = (
-      f"<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
-      "</pre>\n\n"
-      f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-      f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-      f"<pre>{html.escape(tb_string)}</pre>")
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+        "</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>")
 
-  await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
-                                 text=message,
-                                 parse_mode=ParseMode.HTML)
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
+                                   text=message,
+                                   parse_mode=ParseMode.HTML)
 
 
 def main() -> None:
-  persistence = PicklePersistence(filepath="arbitrarycallbackdatabot")
-  application = (Application.builder().token(os.environ.get(
-      'BOT_TOKEN')).post_init(post_init).persistence(persistence).build())
+    persistence = PicklePersistence(filepath="arbitrarycallbackdatabot")
+    application = (Application.builder().token(os.environ.get(
+        'BOT_TOKEN')).post_init(post_init).persistence(persistence).build())
 
-  handler_list = [
-      CommandHandler("start", start_command),
-      CommandHandler("tts", tts_command),
-      CommandHandler("image", image_command),
-      CommandHandler("authorize", authorize_command),
-      CommandHandler("customize", customize_command),
-      CommandHandler("json", json_command),
-    CommandHandler("clear", clear_command),
-    CommandHandler("share", share_command),
-    CommandHandler("balance", balance_command),
-    #CommandHandler("add", add_command),
-    CommandHandler("settings", settings_commands),
-      MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler),
-      #MessageHandler(filters.AUDIO | filters.VIDEO | filters.VOICE, audio_to_text_handler),
-  ]
-  for handler in handler_list:
-    application.add_handler(handler)
+    handler_list = [
+        CommandHandler("start", start_command),
+        CommandHandler("tts", tts_command),
+        CommandHandler("image", image_command),
+        CommandHandler("authorize", authorize_command),
+        CommandHandler("customize", customize_command),
+        CommandHandler("json", json_command),
+        CommandHandler("clear", clear_command),
+        CommandHandler("share", share_command),
+        CommandHandler("balance", balance_command),
+        # CommandHandler("add", add_command),
+        CommandHandler("settings", settings_commands),
+        MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler),
+        # MessageHandler(filters.AUDIO | filters.VIDEO | filters.VOICE, audio_to_text_handler),
+    ]
+    for handler in handler_list:
+        application.add_handler(handler)
 
-  application.add_error_handler(error_handler)
-  application.run_polling(drop_pending_updates=True)
+    application.add_error_handler(error_handler)
+    application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
-  main()
+    main()

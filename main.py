@@ -171,7 +171,8 @@ async def message_handler(update, context):
 
     except Exception as e:
         print(f"❌️ | `{e}`")
-        await message.edit_text(f"❌️ | `{e}`", parse_mode="MARKDOWN")
+        await update.message.reply_text(f"❌️ | `{e}`", parse_mode="MARKDOWN",
+                                        reply_to_message_id=update.message.message_id)
         del context.user_data["conversation"][-1]
 
 
@@ -299,7 +300,8 @@ async def tts_command(update: Update, context: CallbackContext):
             current_tts_model = context.user_data.get("tts_model", "tts-1")
             current_voice = context.user_data.get("tts", "alloy")
             await update.message.reply_text(
-                f"⚙️ | إعدادات موديل TTS الحالي: \n<b>{current_tts_model}</b>\n"
+                f"⚙️ | إعدادات موديل TTS الحالي: \n<b>{
+                    current_tts_model}</b>\n"
                 f"🗣️ | إعدادات مؤلف الصوت الحالي: \n<b>{current_voice}</b>",
                 parse_mode=ParseMode.HTML,
                 reply_to_message_id=update.message.message_id)
@@ -402,7 +404,8 @@ async def image_command(update: Update, context: CallbackContext):
         if update.message.text == "/image":
             current_model = context.user_data.get("model_image", "2")
             await update.message.reply_text(
-                f"ℹ️ | يتم استخدام نموذج DALL·E-{current_model} كنموذج تلقائي لصنع الصور. يمكنك الاطلاع على التسعير الخاص بهذا النموذج من هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
+                f"ℹ️ | يتم استخدام نموذج DALL·E-{
+                    current_model} كنموذج تلقائي لصنع الصور. يمكنك الاطلاع على التسعير الخاص بهذا النموذج من هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
                 parse_mode=ParseMode.HTML)
             return
 
@@ -420,7 +423,8 @@ async def image_command(update: Update, context: CallbackContext):
 
             context.user_data["model_image"] = model_value
             await update.message.reply_text(
-                f"✅️ | تم ضبط النموذج التلقائي على DALL·E-{model_value}. يمكنك التحقق من أسعار هذا النموذج هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
+                f"✅️ | تم ضبط النموذج التلقائي على DALL·E-{
+                    model_value}. يمكنك التحقق من أسعار هذا النموذج هنا:\nhttps://platform.openai.com/docs/guides/rate-limits",
                 reply_to_message_id=update.message.message_id,
                 parse_mode=ParseMode.HTML)
             return
@@ -509,7 +513,8 @@ async def audio_to_text_handler(update: Update, context: CallbackContext):
         max_size = size * 1024 * 1024
         if media_size > max_size:
             await update.message.reply_text(
-                f"❌️ | حجم الملف كبير جدا. الحد الاقصى للحجم هو {size} ميغابايت.",
+                f"❌️ | حجم الملف كبير جدا. الحد الاقصى للحجم هو {
+                    size} ميغابايت.",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_to_message_id=update.message.message_id)
             return
@@ -653,8 +658,8 @@ async def balance_command(update: Update, context: CallbackContext):
 
 
 للحصول على معلومات إضافية حول Custo+، [انقر هنا](https://telegra.ph/Custo-12-21).""",
-                                    parse_mode=ParseMode.MARKDOWN,
-                                    reply_to_message_id=update.message.message_id)
+        parse_mode=ParseMode.MARKDOWN,
+        reply_to_message_id=update.message.message_id)
 
 
 # تعريف دالة لمعالجة أمر /clear
@@ -747,9 +752,12 @@ async def settings_commands(update: Update, context):
 
 async def json_command(update: Update, context: CallbackContext):
     message = (
-        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-        f"<pre>context.bot_data = {html.escape(str(context.bot_data))}</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(
+            str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(
+            str(context.user_data))}</pre>\n\n"
+        f"<pre>context.bot_data = {html.escape(
+            str(context.bot_data))}</pre>\n\n"
     )
 
     await update.message.reply_text(message, parse_mode=ParseMode.HTML)
@@ -778,10 +786,13 @@ async def error_handler(update: object,
 
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
     message = (
-        f"<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+        f"<pre>{html.escape(json.dumps(
+            update_str, indent=2, ensure_ascii=False))}"
         "</pre>\n\n"
-        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(
+            str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(
+            str(context.user_data))}</pre>\n\n"
         f"<pre>{html.escape(tb_string)}</pre>")
 
     await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,

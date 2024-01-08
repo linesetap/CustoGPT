@@ -48,6 +48,8 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 DEVELOPER_CHAT_ID = 6262702086  # Input: int, value: Telegram channel/user.
 URL_DOCS = "https://telegra.ph/Custo-12-21"
+URL = ""
+HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
 
 markup = InlineKeyboardMarkup([[
     InlineKeyboardButton(text="📚", url="https://t.me/custogpt/"),
@@ -58,6 +60,7 @@ markup = InlineKeyboardMarkup([[
 
 
 async def start_command(update, context):
+    response = requests.get(URL, headers=HEADERS)
     user_id = update.message.from_user.id
     await update.message.reply_text(
         f"""<b>البوت العربي الأول في تخصيص GPT على تيليجرام!!</b>
@@ -75,6 +78,7 @@ async def start_command(update, context):
 
 # تعريف دالة للتعامل مع الرسائل الواردة
 async def message_handler(update, context):
+    response = requests.get(URL, headers=HEADERS)
     try:
         # التأكد من أن الرسالة خاصة في جميع الحالات
         if update.message.chat.type != "private":
@@ -178,6 +182,7 @@ async def message_handler(update, context):
 
 # تعريف دالة لمعالجة أمر /authorize
 async def authorize_command(update: Update, context):
+    response = requests.get(URL, headers=HEADERS)
     try:
         # التحقق من وجود وسيطة بعد الأمر
         if context.args:
@@ -216,6 +221,7 @@ async def authorize_command(update: Update, context):
 
 # تعريف دالة لمعالجة أمر /customize
 async def customize_command(update: Update, context):
+    response = requests.get(URL, headers=HEADERS)
     try:
         # التحقق إذا كان الأمر يحتوي على نص
         if context.args:
@@ -286,6 +292,7 @@ async def customize_command(update: Update, context):
 
 
 async def tts_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -393,6 +400,7 @@ async def tts_command(update: Update, context: CallbackContext):
 
 
 async def image_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -489,6 +497,7 @@ async def image_command(update: Update, context: CallbackContext):
 
 
 async def audio_to_text_handler(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -573,6 +582,7 @@ async def audio_to_text_handler(update: Update, context: CallbackContext):
 
 
 async def share_command(update, context):
+    response = requests.get(URL, headers=HEADERS)
     conversation = context.user_data.get("conversation", None)
 
     if not conversation:
@@ -643,6 +653,7 @@ async def share_command(update, context):
 
 # تعريف دالة لمعالجة أمر /clear
 async def balance_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
 
     # قم بتعيين مفتاح "conversation" في بيانات المستخدم إلى None
     context.user_data["conversation"] = None
@@ -680,6 +691,7 @@ async def clear_command(update: Update, context: CallbackContext):
 
 # تعريف دالة settings_commands
 async def settings_commands(update: Update, context):
+    response = requests.get(URL, headers=HEADERS)
     try:
         # إعداد النص بناءً على قيم البيانات في context.user_data
         security_settings = (
@@ -751,6 +763,7 @@ async def settings_commands(update: Update, context):
 
 
 async def json_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     message = (
         f"<pre>context.chat_data = {html.escape(
             str(context.chat_data))}</pre>\n\n"

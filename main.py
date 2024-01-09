@@ -38,16 +38,19 @@ import time
 import re
 import aiohttp
 import os
-from website import website
+import colorama
+from website import *
 website()
+
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
+colorama.init()
 DEVELOPER_CHAT_ID = 6262702086  # Input: int, value: Telegram channel/user.
 URL_DOCS = "https://telegra.ph/Custo-12-21"
+
 
 markup = InlineKeyboardMarkup([[
     InlineKeyboardButton(text="📚", url="https://t.me/custogpt/"),
@@ -58,6 +61,7 @@ markup = InlineKeyboardMarkup([[
 
 
 async def start_command(update, context):
+    send_request()
     user_id = update.message.from_user.id
     await update.message.reply_text(
         f"""<b>البوت العربي الأول في تخصيص GPT على تيليجرام!!</b>
@@ -76,6 +80,7 @@ async def start_command(update, context):
 # تعريف دالة للتعامل مع الرسائل الواردة
 async def message_handler(update, context):
     try:
+        send_request()
         # التأكد من أن الرسالة خاصة في جميع الحالات
         if update.message.chat.type != "private":
             # لا يرد إذا كانت الرسالة من مجموعة وليست ردًا على رسالة البوت
@@ -178,6 +183,7 @@ async def message_handler(update, context):
 
 # تعريف دالة لمعالجة أمر /authorize
 async def authorize_command(update: Update, context):
+    send_request()
     try:
         # التحقق من وجود وسيطة بعد الأمر
         if context.args:
@@ -216,6 +222,7 @@ async def authorize_command(update: Update, context):
 
 # تعريف دالة لمعالجة أمر /customize
 async def customize_command(update: Update, context):
+    response = requests.get(URL, headers=HEADERS)
     try:
         # التحقق إذا كان الأمر يحتوي على نص
         if context.args:
@@ -286,6 +293,7 @@ async def customize_command(update: Update, context):
 
 
 async def tts_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -393,6 +401,7 @@ async def tts_command(update: Update, context: CallbackContext):
 
 
 async def image_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -489,6 +498,7 @@ async def image_command(update: Update, context: CallbackContext):
 
 
 async def audio_to_text_handler(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     try:
         key = context.user_data.get("authorize")
         if not key:
@@ -573,6 +583,7 @@ async def audio_to_text_handler(update: Update, context: CallbackContext):
 
 
 async def share_command(update, context):
+    response = requests.get(URL, headers=HEADERS)
     conversation = context.user_data.get("conversation", None)
 
     if not conversation:
@@ -679,79 +690,8 @@ async def clear_command(update: Update, context: CallbackContext):
         reply_to_message_id=update.message.message_id)
 
 
-# تعريف دالة settings_commands
-async def settings_commands(update: Update, context):
-    try:
-        # إعداد النص بناءً على قيم البيانات في context.user_data
-        security_settings = (
-            f"<b>⚙️ | قسم الأمان</b>\n"
-            f"1. إعدادات التفويض:\n"
-            f"<pre>{context.user_data.get('authorize', None)}</pre>"
-        )
-
-        chat_section = (
-            f"<b>💬 | قسم الدردشة</b>\n"
-            f"1. شخصية البوت:"
-            f"<pre>{context.user_data.get('instructions', None)}</pre>"
-        )
-
-        tts_settings = (
-            f"<b>🗣️ | قسم الصوت</b>\n"
-            f"1. إعدادات موديل TTS الحالي:\n"
-            f"<pre>{context.user_data.get('tts', 'tts-1')}</pre>"
-            f"2. إعدادات مؤلف الصوت الحالي:\n"
-            f"<pre>{context.user_data.get('tts_model', 'alloy')}</pre>"
-        )
-
-        image_section = (
-            f"<b>🖼 | قسم الصور</b>\n"
-            f"1. موديل DALL·E:\n"
-            f"<pre>DALL·E-{context.user_data.get('model_image', '3')}</pre>"
-        )
-
-        warning_section = (
-            f"<b>⚠️ | تحذير</b>\n"
-            f"مشاركة مفتاح التفويض مع الآخرين قد تؤدي إلى نفاذ رصيدك في OpenAI أو سحب أموال منك. انتبه ولا تشاركه مع أحد. "
-            f"ومشاركة بيانات الدردشة مع الآخرين قد تؤدي إلى وصول آخرين إلى دردشتك التي قد تكون خاصة أو تحتوي على معلومات عنك."
-        )
-
-        made_by_section = (
-            f"<b>💛 | صنع بواسطة</b>\n"
-            f"- Saleh (@jiv9e)\n"
-            f"- CustoGPT (@custogpt)"
-        )
-
-        # إعداد الرد النهائي
-        final_response = (
-            security_settings
-            + "\n\n"
-            + chat_section
-            + "\n\n"
-            + tts_settings
-            + "\n\n"
-            + image_section
-            + "\n\n"
-            + warning_section
-            + "\n\n"
-            + made_by_section
-        )
-
-        # إرسال الرد بشكل غير متزامن
-        await update.message.reply_text(
-            final_response,
-            parse_mode=ParseMode.HTML,
-            reply_to_message_id=update.message.message_id,
-        )
-    except Exception as e:
-        # في حالة حدوث خطأ، إرسال رسالة خطأ مع توضيح الخطأ
-        await update.message.reply_text(
-            f"❌️ | `{e}`",
-            parse_mode=ParseMode.MARKDOWN,
-            reply_to_message_id=update.message.message_id,
-        )
-
-
 async def json_command(update: Update, context: CallbackContext):
+    response = requests.get(URL, headers=HEADERS)
     message = (
         f"<pre>context.chat_data = {html.escape(
             str(context.chat_data))}</pre>\n\n"
@@ -762,6 +702,27 @@ async def json_command(update: Update, context: CallbackContext):
     )
 
     await update.message.reply_text(message, parse_mode=ParseMode.HTML)
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    tb_list = traceback.format_exception(
+        None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"<pre>{html.escape(json.dumps(update_str, indent=2,
+                            ensure_ascii=False))}</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(
+            str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(
+            str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>"
+    )
+
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
+                                   text=message,
+                                   parse_mode=ParseMode.HTML)
 
 
 async def post_init(application: Application):
@@ -775,36 +736,16 @@ async def post_init(application: Application):
         BotCommand("/authorize", "🔑 تعيين مفتاح تفويض"),
         BotCommand("/customize", "👤 تعيين الشخصية"),
         BotCommand("/clear", "🔄 تجديد الدردشة"),
+        BotCommand("/help", "ℹ️ مساعدة"),
+
         BotCommand("/settings", "⚙️ إعدادات البوت")
     ])
 
 
-async def error_handler(update: object,
-                        context: ContextTypes.DEFAULT_TYPE) -> None:
-    tb_list = traceback.format_exception(None, context.error,
-                                         context.error.__traceback__)
-    tb_string = "".join(tb_list)
-
-    update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    message = (
-        f"<pre>{html.escape(json.dumps(
-            update_str, indent=2, ensure_ascii=False))}"
-        "</pre>\n\n"
-        f"<pre>context.chat_data = {html.escape(
-            str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(
-            str(context.user_data))}</pre>\n\n"
-        f"<pre>{html.escape(tb_string)}</pre>")
-
-    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
-                                   text=message,
-                                   parse_mode=ParseMode.HTML)
-
-
 def main() -> None:
     persistence = PicklePersistence(filepath="arbitrarycallbackdatabot")
-    application = (Application.builder().token(os.environ.get(
-        'BOT_TOKEN')).post_init(post_init).persistence(persistence).build())
+    application = (Application.builder().token(os.environ.get('BOT_TOKEN'))
+                   .post_init(post_init).persistence(persistence).build())
 
     handler_list = [
         CommandHandler("start", start_command),
@@ -817,10 +758,12 @@ def main() -> None:
         CommandHandler("share", share_command),
         CommandHandler("balance", balance_command),
         # CommandHandler("add", add_command),
-        CommandHandler("settings", settings_commands),
+        CommandHandler("help", helps_command),
+        CommandHandler("settings", helps_command),
         MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler),
         # MessageHandler(filters.AUDIO | filters.VIDEO | filters.VOICE, audio_to_text_handler),
     ]
+
     for handler in handler_list:
         application.add_handler(handler)
 

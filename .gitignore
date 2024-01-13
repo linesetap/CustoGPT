@@ -127,10 +127,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+arbitrarycallbackdatabot
 
 # Secret 
 .env
-
+arbitrarycallbackdatabot
 
 # Spyder project settings
 .spyderproject
